@@ -53,6 +53,33 @@ impl<A: Eq + Ord> Extend<A> for NaiveBinaryHeap<A> {
     }
 }
 
+/// To test these two data structures, we're going to first define the notion of an operation. This
+/// can be as simple or as complex as we like.
+#[derive(Clone, Copy, Debug, Arbitrary)]
+enum Op {
+    /// By default proptest picks enum variants uniformly randomly, but we can also assign separate
+    /// weights for each variant. In this case, let's say that we do pushes 1/3rd of the time and
+    /// pops 2/3rd.
+    #[proptest(weight = 1)]
+    Push {
+        /// The value that we're going to push.
+        ///
+        /// Core types like usize have a default generation strategy provided by their Arbitrary
+        /// implementation. For integers, the default strategy is simply to uniformly randomly pick
+        /// any possible integer.
+        ///
+        /// We can also specify a strategy explicitly. Here, we can specify a range of integers to
+        /// match against.
+        #[proptest(strategy = "usize::MIN ..= usize::MAX")]
+        item: usize,
+    },
+    /// This is the pop operation.
+    #[proptest(weight = 2)]
+    Pop,
+}
+
+/// This struct defines the test state. It contains the data structure under test (the `BinaryHeap`)
+/// and the naive data structure (the `NaiveBinaryHeap`) that acts as a baseline.
 #[derive(Clone, Debug)]
 struct TestState {
     heap: BinaryHeap<usize>,
@@ -60,6 +87,7 @@ struct TestState {
 }
 
 impl TestState {
+    /// Creates a new `TestState` with the same contents across the test heap and the naive heap.
     fn new(initial: Vec<usize>) -> Self {
         let mut heap = BinaryHeap::new();
         heap.extend(&initial);
@@ -69,15 +97,17 @@ impl TestState {
         Self { heap, naive }
     }
 
+    /// Apply a series of operations and perform assertions along the way.
     fn apply_ops_and_assert(&mut self, ops: Vec<Op>) {
         for (idx, op) in ops.into_iter().enumerate() {
             self.apply_op_and_assert(idx, op);
         }
     }
 
+    /// Apply an operation and perform an assert.
     fn apply_op_and_assert(&mut self, idx: usize, op: Op) {
         match op {
-            Op::Push(item) => {
+            Op::Push { item } => {
                 self.heap.push(item);
                 self.naive.push(item);
             }
@@ -101,7 +131,7 @@ impl TestState {
     }
 
     fn assert_final(self) {
-        // Check that the state is the same at the end.
+        // Check that the final sorted vec is the same at the end.
         assert_eq!(
             self.heap.into_sorted_vec(),
             self.naive.into_sorted_vec(),
@@ -110,17 +140,20 @@ impl TestState {
     }
 }
 
-#[derive(Clone, Copy, Debug, Arbitrary)]
-enum Op {
-    Push(usize),
-    Pop,
-}
-
-impl Op {}
-
 proptest! {
+    /// This is the test.
+    ///
+    /// The test takes in two proptest strategies as arguments:
+    /// * the initial state, which is a vector of 0 to 128 integers. The size of the vector 0..128
+    ///   is uniformly randomly picked, and the integers are then uniformly randomly picked
+    ///   afterwards.
+    /// * a list of operations, which is a vector of 0 to 128 operations. The any::<Op>() call uses
+    ///   the default strategy defined by the `Arbitrary` implementation here.
+    ///
+    /// Setting a lower bound for vectors and other collections is important because that's how far
+    /// down proptest will shrink them to. Typical lower bounds are 0 and 1.
     #[test]
-    fn test_compare_heaps(initial in vec(any::<usize>(), 0..128), ops in vec(any::<Op>(), 0..64)) {
+    fn test_compare_heaps(initial in vec(any::<usize>(), 0..128), ops in vec(any::<Op>(), 0..128)) {
         let mut state = TestState::new(initial);
         state.apply_ops_and_assert(ops);
 
