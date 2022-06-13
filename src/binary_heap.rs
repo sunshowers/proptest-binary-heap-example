@@ -751,16 +751,6 @@ impl<T: Ord> BinaryHeap<T> {
     ///
     /// Basic usage:
     ///
-    /// ```
-    /// #![feature(binary_heap_drain_sorted)]
-    /// use std::collections::BinaryHeap;
-    ///
-    /// let mut heap = BinaryHeap::from([1, 2, 3, 4, 5]);
-    /// assert_eq!(heap.len(), 5);
-    ///
-    /// drop(heap.drain_sorted()); // removes all elements in heap order
-    /// assert_eq!(heap.len(), 0);
-    /// ```
     #[inline]
     pub fn drain_sorted(&mut self) -> DrainSorted<'_, T> {
         DrainSorted { inner: self }
@@ -775,16 +765,6 @@ impl<T: Ord> BinaryHeap<T> {
     ///
     /// Basic usage:
     ///
-    /// ```
-    /// #![feature(binary_heap_retain)]
-    /// use std::collections::BinaryHeap;
-    ///
-    /// let mut heap = BinaryHeap::from([-10, -5, 1, 2, 4, 13]);
-    ///
-    /// heap.retain(|x| x % 2 == 0); // only keep even numbers
-    ///
-    /// assert_eq!(heap.into_sorted_vec(), [-10, 2, 4])
-    /// ```
     pub fn retain<F>(&mut self, mut f: F)
     where
         F: FnMut(&T) -> bool,
@@ -834,13 +814,6 @@ impl<T> BinaryHeap<T> {
     ///
     /// Basic usage:
     ///
-    /// ```
-    /// #![feature(binary_heap_into_iter_sorted)]
-    /// use std::collections::BinaryHeap;
-    /// let heap = BinaryHeap::from([1, 2, 3, 4, 5]);
-    ///
-    /// assert_eq!(heap.into_iter_sorted().take(2).collect::<Vec<_>>(), [5, 4]);
-    /// ```
     pub fn into_iter_sorted(self) -> IntoIterSorted<T> {
         IntoIterSorted { inner: self }
     }
@@ -957,24 +930,6 @@ impl<T> BinaryHeap<T> {
     ///
     /// # Examples
     ///
-    /// ```
-    /// #![feature(try_reserve_2)]
-    /// use std::collections::BinaryHeap;
-    /// use std::collections::TryReserveError;
-    ///
-    /// fn find_max_slow(data: &[u32]) -> Result<Option<u32>, TryReserveError> {
-    ///     let mut heap = BinaryHeap::new();
-    ///
-    ///     // Pre-reserve the memory, exiting if we can't
-    ///     heap.try_reserve_exact(data.len())?;
-    ///
-    ///     // Now we know this can't OOM in the middle of our complex work
-    ///     heap.extend(data.iter());
-    ///
-    ///     Ok(heap.pop())
-    /// }
-    /// # find_max_slow(&[1, 2, 3]).expect("why is the test harness OOMing on 12 bytes?");
-    /// ```
     pub fn try_reserve_exact(&mut self, additional: usize) -> Result<(), TryReserveError> {
         self.data.try_reserve_exact(additional)
     }
@@ -992,24 +947,6 @@ impl<T> BinaryHeap<T> {
     ///
     /// # Examples
     ///
-    /// ```
-    /// #![feature(try_reserve_2)]
-    /// use std::collections::BinaryHeap;
-    /// use std::collections::TryReserveError;
-    ///
-    /// fn find_max_slow(data: &[u32]) -> Result<Option<u32>, TryReserveError> {
-    ///     let mut heap = BinaryHeap::new();
-    ///
-    ///     // Pre-reserve the memory, exiting if we can't
-    ///     heap.try_reserve(data.len())?;
-    ///
-    ///     // Now we know this can't OOM in the middle of our complex work
-    ///     heap.extend(data.iter());
-    ///
-    ///     Ok(heap.pop())
-    /// }
-    /// # find_max_slow(&[1, 2, 3]).expect("why is the test harness OOMing on 12 bytes?");
-    /// ```
     pub fn try_reserve(&mut self, additional: usize) -> Result<(), TryReserveError> {
         self.data.try_reserve(additional)
     }
@@ -1061,15 +998,6 @@ impl<T> BinaryHeap<T> {
     ///
     /// Basic usage:
     ///
-    /// ```
-    /// #![feature(binary_heap_as_slice)]
-    /// use std::collections::BinaryHeap;
-    /// use std::io::{self, Write};
-    ///
-    /// let heap = BinaryHeap::from([1, 2, 3, 4, 5, 6, 7]);
-    ///
-    /// io::sink().write(heap.as_slice()).unwrap();
-    /// ```
     #[must_use]
     pub fn as_slice(&self) -> &[T] {
         self.data.as_slice()
