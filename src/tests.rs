@@ -3,23 +3,23 @@ use proptest::collection::vec;
 use proptest::prelude::*;
 use proptest_derive::Arbitrary;
 
-/// This is a really simple "naive" binary heap that is trivially correct by inspection.
+/// This is a really simple "naive" heap that is trivially correct by inspection.
 ///
 /// The time complexity of the `push` operation is `O(n log n)` which makes this infeasible to use
 /// in production, but it will be perfect for our tests.
 #[derive(Clone, Debug)]
-struct NaiveBinaryHeap<T> {
+struct NaiveHeap<T> {
     // The invariant here is that the data is always in sorted order.
     data: Vec<T>,
 }
 
-impl<T: Eq + Ord> NaiveBinaryHeap<T> {
-    /// Creates a new `BinaryHeap`.
+impl<T: Eq + Ord> NaiveHeap<T> {
+    /// Creates a new `NaiveHeap`.
     pub fn new() -> Self {
         Self { data: vec![] }
     }
 
-    /// Pushes an item onto the binary heap.
+    /// Pushes an item onto the heap.
     pub fn push(&mut self, item: T) {
         // Push the item to the end.
         self.data.push(item);
@@ -27,13 +27,13 @@ impl<T: Eq + Ord> NaiveBinaryHeap<T> {
         self.data.sort();
     }
 
-    /// Removes the greatest item from the binary heap and returns it, or `None` if it is empty.
+    /// Removes the greatest item from the heap and returns it, or `None` if it is empty.
     pub fn pop(&mut self) -> Option<T> {
         // Data is always in sorted order so last element is greatest.
         self.data.pop()
     }
 
-    /// Returns the greatest element in the binary heap.
+    /// Returns the greatest element in the heap.
     pub fn peek(&self) -> Option<&T> {
         // Data is always in sorted order so last element is greatest.
         self.data.last()
@@ -41,12 +41,12 @@ impl<T: Eq + Ord> NaiveBinaryHeap<T> {
 
     /// Consumes the heap and returns a vector in sorted (ascending) order.
     pub fn into_sorted_vec(self) -> Vec<T> {
-        // self.data is already sorted so it's as simple as
+        // self.data is already sorted so it's as simple as returning it
         self.data
     }
 }
 
-impl<A: Eq + Ord> Extend<A> for NaiveBinaryHeap<A> {
+impl<A: Eq + Ord> Extend<A> for NaiveHeap<A> {
     fn extend<T: IntoIterator<Item = A>>(&mut self, iter: T) {
         self.data.extend(iter);
         self.data.sort();
@@ -83,7 +83,7 @@ enum Op {
 #[derive(Clone, Debug)]
 struct TestState {
     heap: BinaryHeap<usize>,
-    naive: NaiveBinaryHeap<usize>,
+    naive: NaiveHeap<usize>,
 }
 
 impl TestState {
@@ -91,7 +91,7 @@ impl TestState {
     fn new(initial: Vec<usize>) -> Self {
         let mut heap = BinaryHeap::new();
         heap.extend(&initial);
-        let mut naive = NaiveBinaryHeap::new();
+        let mut naive = NaiveHeap::new();
         naive.extend(initial);
 
         Self { heap, naive }
